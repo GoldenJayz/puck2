@@ -115,8 +115,8 @@ async function execute(message, serverQueue) {
 
   const songInfo = await ytdl.getInfo(args[1]);
   const song = {
-    title: songInfo.title,
-    url: songInfo.video_url
+    title: songInfo.videoDetails.title,
+    url: songInfo.videoDetails.video_url
   };
 
   if (!serverQueue) {
@@ -204,6 +204,6 @@ function play(guild, song, message) {
 
 
 
-client.login(token);
+client.login(process.env.BOT_TOKEN);
 
 
