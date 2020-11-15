@@ -1,7 +1,7 @@
 const Discord = require("discord.js");
 const { prefix } = require("./config.json");
 const ytdl = require("ytdl-core");
-const search = require("ytsr")
+const search = require("ytsr");
 
 const client = new Discord.Client();
 
@@ -40,63 +40,81 @@ client.on("message", async message => {
   } else if (message.content.startsWith(`${prefix}leave`)) {
     leave(message, serverQueue);
     return;
-  } else if(message.content.startsWith(`${prefix}loop`)) {
-    if(!message.member.voice.channel) return message.channel.send("You need to be inside a voice channel idiot")
-    if(!serverQueue) return message.channel.send("There is nothing playing.")
+  } else if (message.content.startsWith(`${prefix}loop`)) {
+    if (!message.member.voice.channel)
+      return message.channel.send(
+        "You need to be inside a voice channel idiot"
+      );
+    if (!serverQueue)
+      return message.channel.send("There is not a song playing currently!");
 
-    serverQueue.loop = !serverQueue.loop
+    serverQueue.loop = !serverQueue.loop;
 
-    return message.channel.send(`Looping is now ${serverQueue.loop ? `**Enabled**` : `**Disabled**`}`)
-  } else if(message.content.startsWith(`${prefix}volume`)) {
-    volume(message, serverQueue)
-    volume(message, message.content.split(" "), serverQueue)
+    return message.channel.send(
+      `Looping is now ${serverQueue.loop ? `**Enabled**` : `**Disabled**`}`
+    );
+  } else if (message.content.startsWith(`${prefix}volume`)) {
+    volume(message, serverQueue);
+    volume(message, message.content.split(" "), serverQueue);
   }
 });
 
 async function volume(message, args, serverQueue) {
-
-  if(!serverQueue) return message.channel.send("There is not a song playing currently!");
-  if(!args[1]) return message.channel.send(`Current Volume is: ${serverQueue.volume || 1}`);
-  if(Number(args[1]) <= 0 || Number(args[1]) > 2) return message.channel.send("Volume only goes from 1-2");
+  if (!serverQueue) return;
+  if (!args[1])
+    return message.channel.send(
+      `Current Volume is: ${serverQueue.volume || 1}`
+    );
+  if (Number(args[1]) <= 0 || Number(args[1]) > 2)
+    return message.channel.send("Volume only goes from 1-2");
 
   serverQueue.connection.dispatcher.setVolumeLogarithmic(Number(args[1]));
   serverQueue.volume = Number(args[1]);
-  message.channel.send(`Volume has been adjusted to: ${args[1]}`)
-};
+  message.channel.send(`Volume has been adjusted to: ${args[1]}`);
+}
 async function join(message, serverQueue, member) {
   if (message.member.voice.channel) {
-      const connection = await message.member.voice.channel.join();
-      const embed = new Discord.MessageEmbed()
-      .setTitle('Joined')
-      .setColor('#0099ff')
-      .setURL('https://puckpanel.glitch.me/')
+    const connection = await message.member.voice.channel.join();
+    const embed = new Discord.MessageEmbed()
+      .setTitle("Joined")
+      .setColor("#0099ff")
+      .setURL("https://puckpanel.glitch.me/")
       .setAuthor(message.author.tag, message.author.avatarURL())
-      .setThumbnail("https://cdn.discordapp.com/avatars/767087798804283403/c763a1556e16a62e576fbb98a174a374.png?size=1024")
-      .addField('Channel:', message.member.voice.channel.name)
+      .setThumbnail(
+        "https://cdn.discordapp.com/avatars/767087798804283403/c763a1556e16a62e576fbb98a174a374.png?size=1024"
+      )
+      .addField("Channel:", message.member.voice.channel.name)
       .setTimestamp()
-      .setFooter('I sniff little children', 'https://cdn.discordapp.com/avatars/767087798804283403/c763a1556e16a62e576fbb98a174a374.png?size=1024');
-      
-      message.channel.send(embed);
-    }
-  };
+      .setFooter(
+        "I sniff little children",
+        "https://cdn.discordapp.com/avatars/767087798804283403/c763a1556e16a62e576fbb98a174a374.png?size=1024"
+      );
+
+    message.channel.send(embed);
+  }
+}
 
 async function leave(message) {
   if (message.member.voice.channel) {
     const connection = await message.member.voice.channel.leave();
     const embed = new Discord.MessageEmbed()
-    .setTitle('Left')
-    .setColor('#0099ff')
-    .setURL('https://puckpanel.glitch.me/')
-    .setAuthor(message.author.tag, message.author.avatarURL())
-    .setThumbnail("https://cdn.discordapp.com/avatars/767087798804283403/c763a1556e16a62e576fbb98a174a374.png?size=1024")
-    .addField('Channel:', message.member.voice.channel.name)
-    .setTimestamp()
-    .setFooter('I hit on underage girls', 'https://cdn.discordapp.com/avatars/767087798804283403/c763a1556e16a62e576fbb98a174a374.png?size=1024');
+      .setTitle("Left")
+      .setColor("#0099ff")
+      .setURL("https://puckpanel.glitch.me/")
+      .setAuthor(message.author.tag, message.author.avatarURL())
+      .setThumbnail(
+        "https://cdn.discordapp.com/avatars/767087798804283403/c763a1556e16a62e576fbb98a174a374.png?size=1024"
+      )
+      .addField("Channel:", message.member.voice.channel.name)
+      .setTimestamp()
+      .setFooter(
+        "I hit on underage girls",
+        "https://cdn.discordapp.com/avatars/767087798804283403/c763a1556e16a62e576fbb98a174a374.png?size=1024"
+      );
 
-    message.channel.send(embed)
+    message.channel.send(embed);
   }
-};
-
+}
 
 async function execute(message, serverQueue) {
   const args = message.content.split(" ");
@@ -145,15 +163,20 @@ async function execute(message, serverQueue) {
   } else {
     serverQueue.songs.push(song);
     const embed = new Discord.MessageEmbed()
-    .setTitle('Play')
-    .setColor('#0099ff')
-    .setURL('https://puckpanel.glitch.me/')
-    .setAuthor(message.author.tag, message.author.avatarURL())
-    .setThumbnail("https://cdn.discordapp.com/avatars/767087798804283403/c763a1556e16a62e576fbb98a174a374.png?size=1024")
-    .addField('Channel:', message.member.voice.channel.name)
-    .addField('Song Name:', `${song.title}`)
-    .setTimestamp()
-    .setFooter('I have a poop fetish', 'https://cdn.discordapp.com/avatars/767087798804283403/c763a1556e16a62e576fbb98a174a374.png?size=1024');
+      .setTitle("Play")
+      .setColor("#0099ff")
+      .setURL("https://puckpanel.glitch.me/")
+      .setAuthor(message.author.tag, message.author.avatarURL())
+      .setThumbnail(
+        "https://cdn.discordapp.com/avatars/767087798804283403/c763a1556e16a62e576fbb98a174a374.png?size=1024"
+      )
+      .addField("Channel:", message.member.voice.channel.name)
+      .addField("Song Name:", `${song.title}`)
+      .setTimestamp()
+      .setFooter(
+        "I have a poop fetish",
+        "https://cdn.discordapp.com/avatars/767087798804283403/c763a1556e16a62e576fbb98a174a374.png?size=1024"
+      );
 
     return message.channel.send(embed);
   }
@@ -179,31 +202,32 @@ function stop(message, serverQueue) {
 }
 
 function play(guild, song, message) {
-
   const serverQueue = queue.get(guild.id);
 
   const dispatcher = serverQueue.connection
     .play(ytdl(song.url))
     .on("finish", () => {
-      if(!serverQueue.loop) serverQueue.songs.shift();
+      if (!serverQueue.loop) serverQueue.songs.shift();
       play(guild, serverQueue.songs[0]);
     })
     .on("error", error => console.error(error));
   dispatcher.setVolumeLogarithmic(serverQueue.volume / 5);
   const embed = new Discord.MessageEmbed()
-  .setTitle('Play')
-  .setColor('#0099ff')
-  .setURL('https://puckpanel.glitch.me/')
-  .setThumbnail("https://cdn.discordapp.com/avatars/767087798804283403/c763a1556e16a62e576fbb98a174a374.png?size=1024")
-  .setTimestamp()
-  .addField('Song Name:', `${song.title}`)
-  .setFooter('I sniff little children', 'https://cdn.discordapp.com/avatars/767087798804283403/c763a1556e16a62e576fbb98a174a374.png?size=1024');
-  
+    .setTitle("Play")
+    .setColor("#0099ff")
+    .setURL("https://puckpanel.glitch.me/")
+    .setThumbnail(
+      "https://cdn.discordapp.com/avatars/767087798804283403/c763a1556e16a62e576fbb98a174a374.png?size=1024"
+    )
+    .setTimestamp()
+    .addField("Song Name:", `${song.title}`)
+    .setFooter(
+      "I sniff little children",
+      "https://cdn.discordapp.com/avatars/767087798804283403/c763a1556e16a62e576fbb98a174a374.png?size=1024"
+    );
+
   serverQueue.textChannel.send(embed);
 }
 
-
-
-client.login(process.env.BOT_TOKEN);
-
+client.login(process.env.token);
 
