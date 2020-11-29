@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>PuckAPI</title>
+    <style></style>
+  </head>
+  <body>
+    <p id="uptime">
+      hi
+    </p>
+    <script>
+      var oXHR = new XMLHttpRequest();
+
+      oXHR.onreadystatechange = reportStatus;
+      oXHR.open("GET", "/api.json", true);
+      oXHR.send();
+
+      function reportStatus() {
+        if (oXHR.readyState == 4) {
+          document.getElementById("uptime").innerHTML = this.responseText;
+        }
+      }
+    </script>
+  </body>
+</html>
