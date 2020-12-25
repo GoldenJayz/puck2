@@ -1,32 +1,15 @@
 const Discord = require("discord.js");
-const { prefix } = require("./config.json");
 const ytdl = require("ytdl-core");
-const search = require("ytsr");
-const express = require("express");
-const app = express();
 const moment = require("moment");
-const fs = require("fs");
-require("moment-duration-format");
+const search = require("youtube-search");
+const opts = {
+  maxResults: 25,
+  key: "nope",
+  type: 'video'
+};
 
-app.use(express.static("public"));
 
-app.get("/", (request, response) => {
-  response.json(JSON.parse(fs.readFileSync("./public/api.json")));
-});
-
-app.get("/install", (request, response) => {
-  response.redirect(
-    "https://cdn.glitch.com/2364bf08-08fc-4609-9334-19b002c6e60a%2Fdist.rar?v=1604165398798"
-  );
-});
-
-app.get("/call", (request, response) => {
-  response.sendFile(__dirname + "/views/call.html");
-});
-
-const listener = app.listen(process.env.PORT, () => {
-  console.log("Your app is listening on port " + listener.address().port);
-});
+let prefix = "-";
 
 const client = new Discord.Client();
 
@@ -81,42 +64,110 @@ client.on("message", async message => {
   } else if (message.content.startsWith(`${prefix}volume`)) {
     volume(message, serverQueue);
     volume(message, message.content.split(" "), serverQueue);
-  } else if (message.content.startsWith(`${prefix}uptime`)) {
-    uptime(message);
-  }
+  } else if (message.content.startsWith(`${prefix}search`)) {
+    s(message, serverQueue)
+    async function s(message, serverQueue) {
+      let embed = new Discord.MessageEmbed()
+            .setColor("#73ffdc")
+            .setDescription("Please enter a search query. Remember to narrow down your search.")
+            .setTitle("YouTube Search API");
+        let embedMsg = await message.channel.send(embed);
+        let filter = m => m.author.id === message.author.id;
+        let query = await message.channel.awaitMessages(filter, { max: 1 });
+        let results = await search(query.first().content, opts).catch(err => console.log(err));
+        if(results) {
+            let youtubeResults = results.results;
+            let i  =0;
+            let titles = youtubeResults.map(result => {
+                i++;
+                return i + ") " + result.title;
+            });
+            console.log(titles);
+            message.channel.send({
+                embed: {
+                    title: 'Select which song you want by typing the number',
+                    description: titles.join("\n"),
+                    author: {
+                      name: message.author.tag,
+                      icon_url: message.author.avatarURL(),
+                    },
+                    thumbnail: {
+                      url: "https://cdn.discordapp.com/avatars/767087798804283403/c763a1556e16a62e576fbb98a174a374.png?size=1024",
+                    },
+                    timestamp: new Date(),
+                    footer: {
+                      text: 'Select a song',
+                      icon_url: "https://cdn.discordapp.com/avatars/767087798804283403/c763a1556e16a62e576fbb98a174a374.png?size=1024",
+                    },
+                    
+                }
+            }).catch(err => console.log(err));
+            
+            filter = m => (m.author.id === message.author.id) && m.content >= 1 && m.content <= youtubeResults.length;
+            let collected = await message.channel.awaitMessages(filter, { max: 1 });
+            let selected = youtubeResults[collected.first().content - 1];
+
+            console.log(selected.link);
+
+          
+            const voiceChannel = message.member.voice.channel;
+            const songInfo = await ytdl.getInfo(selected.link);
+            const song = {
+              title: songInfo.videoDetails.title,
+              url: songInfo.videoDetails.video_url
+            };
+
+            if (!serverQueue) {
+              const queueContruct = {
+                textChannel: message.channel,
+                voiceChannel: voiceChannel,
+                connection: null,
+                songs: [],
+                volume: 5,
+                playing: true
+              };
+
+              queue.set(message.guild.id, queueContruct);
+
+              queueContruct.songs.push(song);
+
+              try {
+                var connection = await voiceChannel.join();
+                queueContruct.connection = connection;
+                play(message.guild, queueContruct.songs[0]);
+              } catch (err) {
+                console.error(err);
+                queue.delete(message.guild.id);
+                return message.channel.send(err);
+              }
+            } else {
+              serverQueue.songs.push(song);
+              const embed = new Discord.MessageEmbed()
+                .setTitle("Play")
+                .setColor("#0099ff")
+                .setURL("https://puckpanel.glitch.me/")
+                .setAuthor(message.author.tag, message.author.avatarURL())
+                .setThumbnail(
+                  "https://cdn.discordapp.com/avatars/767087798804283403/c763a1556e16a62e576fbb98a174a374.png?size=1024"
+                )
+                .addField("Channel:", message.member.voice.channel.name)
+                .addField("Song Name:", `${song.title}`)
+                .setTimestamp()
+                .setFooter(
+                  "I have a poop fetish",
+                  "https://cdn.discordapp.com/avatars/767087798804283403/c763a1556e16a62e576fbb98a174a374.png?size=1024"
+                );
+
+              return message.channel.send(embed);
+            }
+
+          }
+    }
+    
+        }
 });
 
-void async function hitime() {
-  setInterval(() => {
-    const duration = moment
-      .duration(client.uptime)
-      .format(" D [days], H [hrs], m [mins], s [secs]");
 
-    const time = {
-      uptime: duration
-    };
-
-    let uptime = JSON.stringify(time);
-
-    console.log(duration);
-    fs.writeFileSync("./public/api.json", uptime);
-  }, 1000);
-}();
-
-async function uptime(message) {
-  const duration = moment
-    .duration(client.uptime)
-    .format(" D [days], H [hrs], m [mins], s [secs]");
-
-  const time = {
-    uptime: duration
-  };
-
-  let uptime = JSON.stringify(time);
-
-  console.log(duration);
-  fs.writeFileSync("./public/api.json", uptime);
-}
 
 async function volume(message, args, serverQueue) {
   if (!serverQueue) return;
@@ -145,7 +196,7 @@ async function join(message, serverQueue, member) {
       .addField("Channel:", message.member.voice.channel.name)
       .setTimestamp()
       .setFooter(
-        "Joined voice channel!",
+        "I sniff little children",
         "https://cdn.discordapp.com/avatars/767087798804283403/c763a1556e16a62e576fbb98a174a374.png?size=1024"
       );
 
@@ -167,7 +218,7 @@ async function leave(message) {
       .addField("Channel:", message.member.voice.channel.name)
       .setTimestamp()
       .setFooter(
-        "Left voice channel!",
+        "I hit on underage girls",
         "https://cdn.discordapp.com/avatars/767087798804283403/c763a1556e16a62e576fbb98a174a374.png?size=1024"
       );
 
@@ -215,7 +266,7 @@ async function execute(message, serverQueue) {
       queueContruct.connection = connection;
       play(message.guild, queueContruct.songs[0]);
     } catch (err) {
-      console.log(err);
+      console.error(err);
       queue.delete(message.guild.id);
       return message.channel.send(err);
     }
@@ -233,7 +284,7 @@ async function execute(message, serverQueue) {
       .addField("Song Name:", `${song.title}`)
       .setTimestamp()
       .setFooter(
-        "Playing a song!",
+        "I have a poop fetish",
         "https://cdn.discordapp.com/avatars/767087798804283403/c763a1556e16a62e576fbb98a174a374.png?size=1024"
       );
 
@@ -260,8 +311,14 @@ function stop(message, serverQueue) {
   serverQueue.connection.dispatcher.end();
 }
 
-function play(guild, song, message) {
+async function play(guild, song, message) {
   const serverQueue = queue.get(guild.id);
+  
+  if (!song) {
+    serverQueue.voiceChannel.leave();
+    queue.delete(guild.id);
+    return;
+  }
 
   const dispatcher = serverQueue.connection
     .play(ytdl(song.url))
@@ -281,11 +338,11 @@ function play(guild, song, message) {
     .setTimestamp()
     .addField("Song Name:", `${song.title}`)
     .setFooter(
-      "Playing a song!",
+      "I sniff little children",
       "https://cdn.discordapp.com/avatars/767087798804283403/c763a1556e16a62e576fbb98a174a374.png?size=1024"
     );
 
   serverQueue.textChannel.send(embed);
 }
 
-client.login(process.env.token);
+client.login("");
