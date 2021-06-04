@@ -154,7 +154,7 @@ client.on("message", async message => {
                 .addField("Song Name:", `${song.title}`)
                 .setTimestamp()
                 .setFooter(
-                  "I have a poop fetish",
+                  "amoogus",
                   "https://cdn.discordapp.com/avatars/767087798804283403/c763a1556e16a62e576fbb98a174a374.png?size=1024"
                 );
 
@@ -196,7 +196,7 @@ async function join(message, serverQueue, member) {
       .addField("Channel:", message.member.voice.channel.name)
       .setTimestamp()
       .setFooter(
-        "I sniff little children",
+        "amoogus",
         "https://cdn.discordapp.com/avatars/767087798804283403/c763a1556e16a62e576fbb98a174a374.png?size=1024"
       );
 
@@ -218,7 +218,7 @@ async function leave(message) {
       .addField("Channel:", message.member.voice.channel.name)
       .setTimestamp()
       .setFooter(
-        "I hit on underage girls",
+        "amoogus",
         "https://cdn.discordapp.com/avatars/767087798804283403/c763a1556e16a62e576fbb98a174a374.png?size=1024"
       );
 
@@ -284,7 +284,7 @@ async function execute(message, serverQueue) {
       .addField("Song Name:", `${song.title}`)
       .setTimestamp()
       .setFooter(
-        "I have a poop fetish",
+        "amoogus",
         "https://cdn.discordapp.com/avatars/767087798804283403/c763a1556e16a62e576fbb98a174a374.png?size=1024"
       );
 
@@ -338,7 +338,7 @@ async function play(guild, song, message) {
     .setTimestamp()
     .addField("Song Name:", `${song.title}`)
     .setFooter(
-      "I sniff little children",
+      "amoogus",
       "https://cdn.discordapp.com/avatars/767087798804283403/c763a1556e16a62e576fbb98a174a374.png?size=1024"
     );
 
